@@ -1,0 +1,146 @@
+set dateformat dmy
+create table Club(
+	c_ID varchar(5) , c_Name varchar(30) , c_Type varchar(20) , 
+	constraint club_pk primary key(c_ID) ,
+	constraint club_name check (c_Name is not null) ,
+	constraint club_type check (c_Type in('Sport','Learning','Volunteer','Other'))
+)
+	insert into Club values('C0003','Biking','Sport')
+	insert into Club values('C0001','LakLoke','Volunteer')
+	insert into Club values('C0020','ROV','Other')
+	insert into Club values('C0011','Math','Learning')
+create table Activity(
+	a_ID varchar(5) , a_Name varchar(30) , a_Time time , a_Date smalldatetime , 
+	constraint acty_pk primary key(a_ID) ,
+	constraint acty_name check (a_Name is not null)
+)
+	insert into Activity values('AC002','Bike for Mom','')
+create table Club_has(
+	c_ID varchar(5) , a_ID varchar(5) , 
+	constraint clubh_pk primary key(c_ID,a_ID) ,
+	constraint clubh_fk_acty foreign key(a_ID) references Activity on delete cascade  on update cascade ,/*เพราะอนุญาติให้ลบและอัพเดต a_ID ได้*/
+	constraint clubh_fk_club foreign key(c_ID) references Club on delete no action  on update cascade ,/*เพราะไม่อนุญาติให้ลบ c_IDแต่อนุญาติให้อัพเดตได้*/
+)
+
+create table EducationProgram(
+	e_ID varchar(4) , e_Name varchar(30) , study_fee int ,  
+	constraint ep_pk primary key(e_ID) ,
+	constraint ep_name check (e_Name is not null)
+)
+create table Student(
+	s_ID varchar(5) , s_Name varchar(50) , birthday smalldatetime , gender char , gpa numeric(3,2) , house# varchar(6) , canton varchar(30) ,district varchar(30) 
+	, province varchar(30) , s_Phone varchar(10) , p_Name varchar(50) , p_Phone varchar(10) , c_ID varchar(5) , e_ID varchar(4) ,
+	constraint std_pk primary key(s_ID) ,
+	constraint gpa check(gpa between 0.00 and 4.00) ,
+	constraint std_gen check (gender in('M',('F'))) ,
+	constraint std_name check (s_Name is not null) , 
+	constraint std_fk_club foreign key(c_ID) references Club on delete set null on update cascade ,/*เพราะอนุญาติให้ลบ c_IDแล้วกลายเป็น Nullและอนุญาติให้อัพเดตได้*/
+	constraint std_fk_ep foreign key(e_ID) references EducationProgram on delete no action  on update no action/*เพราะไม่อนุญาติให้ลบและอัพเดต e_ID ได้*/
+)
+
+create table Teacher(
+	t_ID varchar(4) , t_Name varchar(50) ,gender char , position varchar(30) , t_Phone varchar(10), c_ID varchar(5) , 
+	constraint teacher_pk primary key(t_ID) ,
+	constraint teacher_gen check (gender in('M',('F'))) ,
+	constraint teacher_name check (t_Name is not null) , 
+	constraint teacher_fk_club foreign key(c_ID) references Club on delete no action  on update cascade /*เพราะอนุญาติให้ลบ c_IDแล้วกลายเป็น Nullและอนุญาติให้อัพเดตได้*/
+)
+
+create table Advisor(
+	t_ID varchar(4) , s_ID varchar(5) ,
+	constraint ad_pk primary key(t_ID,s_ID) , 
+	constraint ad_fk_teacher foreign key(t_ID) references Teacher on delete set null on update cascade ,/*เพราะอนุญาติให้ลบ t_IDแล้วกลายเป็น Nullและอนุญาติให้อัพเดตได้*/
+	constraint ad_fk_std foreign key(s_ID) references Student on delete no action  on update no action /*เพราะไม่อนุญาติให้ลบและอัพเดต s_ID ได้*/
+)
+
+create table Teach(
+	t_ID varchar(4) , e_ID varchar(4) ,
+	constraint teach_pk primary key(t_ID,e_ID) ,
+	constraint teach_fk_teacher foreign key(t_ID) references Teacher on delete set null  on update cascade ,/*เพราะอนุญาติให้ลบ t_IDแล้วกลายเป็น Nullและอนุญาติให้อัพเดตได้*/
+	constraint teach_fk_ep foreign key(e_ID) references EducationProgram on delete no action  on update no action/*เพราะไม่อนุญาติให้ลบและอัพเดต e_ID ได้*/
+)
+
+create table Subject(
+	sub_ID varchar(6) , sub_Name varchar(30) , credit int ,
+	constraint sub_pk primary key(sub_ID) ,
+	constraint sub_fk_sub foreign key(sub_ID) references Subject on delete no action  on update no action/*เพราะไม่อนุญาติให้ลบและอัพเดต sub_ID ได้*/
+)
+
+create table InEProgram(
+	e_ID varchar(4) , sub_ID varchar(6) , 
+	constraint ine_pk primary key(e_ID) ,
+	constraint ine_fk_ep foreign key(e_ID) references EducationProgram on delete no action  on update no action,/*เพราะไม่อนุญาติให้ลบและอัพเดต e_ID ได้*/
+	constraint ine_fk_sub foreign key(sub_ID) references Subject on delete cascade  on update no action/*อนุญาติให้ลบ sub_ID ได้แต่ไม่อนุญาติให้อัพเดต*/
+)
+create table Place(
+	p_ID varchar(5) , p_Name varchar(30) , p_Type varchar(20) ,
+	constraint place_pk primary key(p_ID) ,
+	constraint place_name check (p_Name is not null)
+)
+
+create table Activity_at(
+	a_ID varchar(5) , p_ID varchar(5) ,
+	constraint actyat_pk primary key(p_ID,a_ID) ,
+	constraint actyat_fk_acty foreign key(a_ID) references Activity on delete no action  on update no action ,/*เพราะไม่อนุญาติให้ลบและอัพเดต a_ID ได้*/
+	constraint actyat_fk_place foreign key(p_ID) references Place on delete no action  on update action/*เพราะไม่อนุญาติให้ลบและอัพเดต p_ID ได้*/
+)
+
+create table Club_at(
+	p_ID varchar(5) , c_ID varchar(5) ,
+	constraint clubat_pk primary key(p_ID,c_ID) ,
+	constraint clubat_fk_club foreign key(c_ID) references Club on delete no action  on update no action ,/*เพราะไม่อนุญาติให้ลบและอัพเดต c_ID ได้*/
+	constraint clubat_fk_place foreign key(p_ID) references Place on delete no action  on update cascade/*เพราะไม่อนุญาติให้ลบ p_ID แต่อัพเดต  ได้*/
+)
+create table Section(
+	sec_ID int identity(1,1) ,sub_ID varchar(6) , t_ID varchar(4) , sec_Time time , weakday varchar(10), term char(6) ,   
+	constraint sec_pk primary key(sec_ID) ,
+	constraint sec_fk_sub foreign key(sub_ID) references Subject on delete no action  on update no action ,/*เพราะไม่อนุญาติให้ลบและอัพเดต sub_ID ได้*/
+	constraint sec_fk_teacher foreign key(t_ID) references Teacher on delete no action  on update no action/*เพราะไม่อนุญาติให้ลบและอัพเดต p_ID ได้*/
+)
+
+create table Section_at(
+	sec_ID varchar(5) , p_ID varchar(5) ,
+	constraint secat_pk primary key(p_ID,sec_ID) ,
+	constraint secat_fk_sec foreign key(sec_ID) references Club on delete no action  on update no action ,/*เพราะไม่อนุญาติให้ลบและอัพเดต sec_ID ได้*/
+	constraint secat_fk_place foreign key(p_ID) references Place on delete no action  on update no action/*เพราะไม่อนุญาติให้ลบและอัพเดต p_ID ได้*/
+)
+create table Study(
+	s_ID varchar(5) , sec_ID int , score numeric(4,2) , grade numeric(3,2) , 
+	constraint study_pk primary key(s_ID,sec_ID) ,
+	constraint study_fk_std foreign key(s_ID) references Student on delete no action  on update no action ,/*เพราะไม่อนุญาติให้ลบและอัพเดต s_ID ได้*/
+	constraint study_fk_sec foreign key(sec_ID) references Section on delete no action  on update no action/*เพราะไม่อนุญาติให้ลบและอัพเดต sec_ID ได้*/
+)
+	
+drop table Study
+drop table Section_at
+drop table Section
+drop table Club_at
+drop table Activity_at
+drop table Place
+drop table InEProgram
+drop table Subject
+drop table Teach
+drop table Advisor
+drop table Teacher
+drop table Student
+drop table EducationProgram
+drop table Club_has
+drop table Activity
+drop table Club
+
+select *from Club
+select *from Club
+select *from Club
+select *from Club
+select *from Club
+select *from Club
+select *from Club
+select *from Club
+select *from Club
+select *from Club
+select *from Club
+select *from Club
+select *from Club
+select *from Club
+select *from Club
+select *from Club
